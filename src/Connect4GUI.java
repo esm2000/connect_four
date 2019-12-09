@@ -4,6 +4,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
@@ -30,6 +33,8 @@ public class Connect4GUI extends JComponent implements MouseListener {
 							// 1: player1 wins
 							// 2: player2 wins
 							// 3: tie
+	private FileOutputStream fo;
+	private PrintWriter pw;
 
 	public Connect4GUI(String player1, String player2) {
 		super();
@@ -183,7 +188,12 @@ public class Connect4GUI extends JComponent implements MouseListener {
 
 		// If the game ends, update scores
 		updateScore();
-		updateMessage();
+		try {
+			updateMessage();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		// repaint the interface
 		repaint();
@@ -257,8 +267,8 @@ public class Connect4GUI extends JComponent implements MouseListener {
 
 				// detect if the diagonal has four pieces of same color
 				if (j < 4 && i > 2) {
-					if (pieces[i][j] == 1 && pieces[i - 1][j + 1] == 1 && pieces[i - 2][j + 2] == 1
-							&& pieces[i - 3][j + 3] == 1) {
+					if (pieces[i][j] == 2 && pieces[i - 1][j + 1] == 2 && pieces[i - 2][j + 2] == 2
+							&& pieces[i - 3][j + 3] == 2) {
 						victoryType = 2;
 					}
 				}
@@ -300,19 +310,37 @@ public class Connect4GUI extends JComponent implements MouseListener {
 		}
 	}
 
-	private void updateMessage() {
-		if (victoryType == 1) {
-			message = player1 + " wins!";
-		} else if (victoryType == 2) {
-			message = player2 + " wins!";
-		} else if (victoryType == 0) {
-			if (isPlayer1Turn) {
-				message = player1 + "'s turn";
-			} else {
-				message = player2 + "'s turn";
+	private void updateMessage() throws IOException {
+		
+		try {
+
+			fo = new FileOutputStream("Connect4-Results.txt");
+			pw = new PrintWriter(fo);
+
+			if (victoryType == 1) {
+				message = player1 + " wins!";
+				pw.println(message);
+			} else if (victoryType == 2) {
+				message = player2 + " wins!";
+				pw.println(message);
+			} else if (victoryType == 0) {
+				if (isPlayer1Turn) {
+					message = player1 + "'s turn";
+				} else {
+					message = player2 + "'s turn";
+				}
+			} else if (victoryType == 3) {
+				message = "It's a tie.";
+				pw.println(message);
 			}
-		} else if (victoryType == 3) {
-			message = "It's a tie.";
+				
+		} catch (IOException except) {
+			except.printStackTrace();
+		} catch(Exception except) {
+			System.out.println(except.getMessage());
+		} finally {
+			pw.flush();
+			fo.close();
 		}
 	}
 
